@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GitHub Music Engine</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; text-align: center; padding: 50px; }
+        #canvas { width: 80%; height: 200px; border: 1px solid #0f0; margin: 20px 0; }
+        button { background: #0f0; color: #000; border: none; padding: 20px 50px; font-size: 20px; cursor: pointer; font-weight: bold; }
+        .slider-container { margin: 20px; }
+        input { width: 300px; }
+    </style>
+</head>
+<body>
+    <h1>ENGINE GENERATIVO V1</h1>
+    <canvas id="canvas"></canvas>
+    <div class="slider-container">
+        <label>COMPLESSITÀ MATEMATICA</label><br>
+        <input type="range" id="chaos" min="0" max="100" value="50">
+    </div>
+    <button id="btn">START ENGINE</button>
+
+    <script>
+        const analyser = new Tone.Analyser("waveform", 256);
+        const dist = new Tone.Distortion(0.1).connect(analyser).toDestination();
+        const synth = new Tone.PolySynth().connect(dist);
+        const kick = new Tone.MembraneSynth().connect(dist);
+
+        const notes = ["A2", "C3", "E3", "G3", "B3", "D4"];
+        let step = 0;
+
+        Tone.Transport.scheduleRepeat((time) => {
+            let chaos = document.getElementById('chaos').value / 100;
+            
+            // Cassa Techno (Matematica fissa 1/4)
+            if (step % 4 === 0) kick.triggerAttackRelease("A1", "8n", time);
+
+            // Melodia (Matematica probabilistica)
+            if (Math.random() < chaos) {
+                let note = notes[Math.floor(Math.random() * notes.length)];
+                synth.triggerAttackRelease(note, "16n", time);
+            }
+            step++;
+        }, "16n");
+
+        // Visualizzatore
+        const cvs = document.getElementById("canvas");
+        const ctx = cvs.getContext("2d");
+        function draw() {
+            requestAnimationFrame(draw);
+            const data = analyser.getValue();
+            ctx.clearRect(0,0,cvs.width,cvs.height);
+            ctx.beginPath();
+            ctx.strokeStyle = "#0f0";
+            for(let i=0; i<data.length; i++) {
+                const x = (i/data.length) * cvs.width;
+                const y = (data[i]+1) * (cvs.height/2);
+                if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+            }
+            ctx.stroke();
+        }
+        draw();
+
+        document.getElementById("btn").onclick = async () => {
+            await Tone.start();
+            Tone.Transport.toggle();
+            document.getElementById("btn").innerText = Tone.Transport.state === "started" ? "STOP" : "START";
+        };
+    </script>
+</body>
+</html>
