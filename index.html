@@ -2,525 +2,344 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>TE-LEGACY PRO // ULTIMATE ACID STATION</title>
+    <title>TE-1 // POCKET WORKSTATION</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;500;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;700&display=swap');
 
         :root {
-            --bg: #dcdcdc;
-            --panel: #eeeeee;
-            --orange: #ff4d00;
-            --blue: #007aff;
-            --yellow: #ffcc00;
-            --green: #2ecc71;
-            --dark: #1a1a1a;
-            --gray: #888;
-            --border: #bcbcbc;
+            --te-bg: #e0e0e0;
+            --te-panel: #f5f5f5;
+            --te-orange: #ff4d00;
+            --te-yellow: #ffcc00;
+            --te-blue: #007aff;
+            --te-green: #2ecc71;
+            --te-dark: #222;
+            --te-gray: #888;
         }
 
-        * { box-sizing: border-box; outline: none; }
-        body { 
-            background: var(--bg); 
-            font-family: 'JetBrains Mono', monospace; 
-            margin: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+        body {
+            background-color: var(--te-bg);
+            color: var(--te-dark);
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             height: 100vh;
-            user-select: none;
+            margin: 0;
+            overflow: hidden;
         }
 
-        /* TELAIO FISICO DEL DISPOSITIVO */
-        .workstation {
-            background: var(--panel);
-            width: 1150px;
-            height: 820px;
-            border-radius: 45px;
+        /* TELAIO FISICO */
+        .device-frame {
+            background-color: var(--te-panel);
+            width: 900px;
+            height: 520px;
+            border-radius: 40px;
+            box-shadow: 20px 20px 60px #bebebe, -20px -20px 60px #ffffff;
             padding: 40px;
-            box-shadow: 25px 25px 50px #bebebe, -25px -25px 50px #ffffff;
-            border: 1.5px solid #d0d0d0;
             display: grid;
-            grid-template-rows: 140px 1fr 180px;
-            gap: 25px;
+            grid-template-rows: 80px 1fr 120px;
+            gap: 20px;
+            border: 1px solid #dcdcdc;
             position: relative;
         }
 
-        /* LCD DISPLAY PROFESSIONALE */
-        .lcd-container {
-            background: #000;
-            border-radius: 20px;
-            padding: 20px;
-            border: 5px solid #333;
-            display: grid;
-            grid-template-columns: 1fr 2fr 1fr;
-            gap: 20px;
-            color: var(--orange);
-        }
-
-        .lcd-data { display: flex; flex-direction: column; justify-content: space-between; font-size: 11px; font-weight: 800; }
-        .lcd-visual { position: relative; border-left: 1px solid #222; border-right: 1px solid #222; }
-        canvas { width: 100%; height: 80px; }
-        .stat-label { color: var(--gray); font-size: 9px; margin-bottom: 2px; }
-        .stat-value { color: #fff; font-size: 16px; margin-bottom: 10px; }
-
-        /* TRACK MANAGEMENT SECTION */
-        .mixer-area {
+        /* DISPLAY LCD MINIMAL */
+        .lcd-screen {
+            background-color: #000;
+            border-radius: 10px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            overflow-y: auto;
-            padding-right: 10px;
+            padding: 10px;
+            border: 4px solid #333;
+            overflow: hidden;
         }
 
-        .track-strip {
-            background: #e6e6e6;
-            border-radius: 15px;
-            padding: 15px;
-            display: grid;
-            grid-template-columns: 120px 140px 80px 1fr;
-            align-items: center;
-            gap: 20px;
-            border: 1px solid #d4d4d4;
-            transition: 0.2s;
-        }
-
-        .track-strip:hover { border-color: var(--orange); }
-
-        .track-header { display: flex; flex-direction: column; }
-        .track-name { font-weight: 800; font-size: 12px; color: var(--dark); text-transform: uppercase; }
-        .track-type { font-size: 8px; color: var(--gray); }
-
-        /* MACRO CONTROLS */
-        .macro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .m-btn {
-            background: #fdfdfd;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+        .lcd-info {
+            display: flex;
+            justify-content: space-between;
+            color: var(--te-green);
             font-size: 10px;
-            padding: 8px;
-            cursor: pointer;
-            font-weight: 800;
-            box-shadow: 2px 2px 0px #bbb;
+            margin-bottom: 5px;
+            text-transform: uppercase;
         }
-        .m-btn:active { transform: translate(1px, 1px); box-shadow: none; background: var(--dark); color: white; }
 
-        /* FX ROUTING SWITCHES */
-        .routing-unit { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .toggle-fx {
-            width: 45px;
-            height: 24px;
-            background: #bbb;
-            border-radius: 12px;
-            position: relative;
-            cursor: pointer;
-        }
-        .toggle-fx.active { background: var(--blue); }
-        .toggle-fx::before {
-            content: '';
-            position: absolute;
-            width: 18px; height: 18px;
-            background: white;
-            border-radius: 50%;
-            top: 3px; left: 3px;
-            transition: 0.2s;
-        }
-        .toggle-fx.active::before { left: 24px; }
+        canvas { width: 100%; height: 40px; }
 
-        /* STEP SEQUENCER NODES */
-        .step-grid { display: grid; grid-template-columns: repeat(16, 1fr); gap: 6px; }
-        .step {
-            height: 45px;
-            background: #cfcfcf;
-            border-radius: 6px;
-            cursor: pointer;
+        /* GRID SEQUENCER */
+        .sequencer-grid {
+            display: grid;
+            grid-template-columns: repeat(16, 1fr);
+            gap: 10px;
+            padding: 20px 0;
+        }
+
+        .step-btn {
+            aspect-ratio: 1;
+            background: #d0d0d0;
             border: none;
-            box-shadow: inset 2px 2px 4px #b8b8b8;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: inset 2px 2px 5px #b0b0b0, inset -2px -2px 5px #ffffff;
             transition: 0.1s;
         }
-        .step.on { background: var(--dark); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .step.playing { background: var(--orange) !important; transform: scaleY(1.1); box-shadow: 0 0 20px var(--orange); }
 
-        /* BOTTOM CONTROL BAR */
-        .master-footer {
-            border-top: 2px solid #ddd;
-            padding-top: 25px;
+        .step-btn.active {
+            background: var(--te-orange);
+            box-shadow: 0 0 15px var(--te-orange);
+        }
+
+        .step-btn.playing {
+            transform: scale(1.15);
+            background: white;
+        }
+
+        /* CONTROLLI ROTATIVI (KNOBS) */
+        .knob-section {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
         }
 
-        .knob-container { display: flex; gap: 35px; }
-        .knob-group { text-align: center; }
-        .knob-physical {
-            width: 60px;
-            height: 60px;
-            background: #fff;
+        .knob-unit { text-align: center; }
+        
+        .knob-circle {
+            width: 50px;
+            height: 50px;
+            background: #eee;
             border-radius: 50%;
             border: 4px solid #ccc;
             margin-bottom: 8px;
             position: relative;
             cursor: ns-resize;
-            box-shadow: 4px 6px 10px #bbb;
+            box-shadow: 3px 3px 6px #bebebe;
         }
-        .knob-pointer {
+
+        .knob-indicator {
             position: absolute;
-            width: 5px; height: 15px;
-            background: var(--orange);
-            left: 50%; top: 6px;
+            width: 4px;
+            height: 15px;
+            background: var(--te-gray);
+            top: 5px;
+            left: 50%;
             transform-origin: bottom center;
             transform: translateX(-50%) rotate(0deg);
         }
 
-        .transport-controls { display: flex; gap: 15px; align-items: center; }
-        .btn-main {
-            padding: 18px 45px;
-            border-radius: 50px;
-            border: none;
-            font-weight: 800;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.2s;
-            text-transform: uppercase;
+        .knob-label { font-size: 8px; font-weight: 700; color: var(--te-gray); text-transform: uppercase; }
+
+        /* TASTI FUNZIONE */
+        .side-btns {
+            position: absolute;
+            right: -80px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
-        .btn-power { background: var(--dark); color: white; }
-        .btn-power.on { background: var(--orange); box-shadow: 0 0 30px rgba(255,77,0,0.5); }
-        .btn-rec { background: #ff0000; color: white; display: none; }
-        .btn-rec.active { animation: pulse-red 1s infinite; }
 
-        @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .function-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            box-shadow: 4px 4px 8px #bebebe;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: bold;
+        }
 
-        .key-hint { font-size: 10px; color: var(--gray); position: absolute; bottom: 15px; left: 40px; }
+        .btn-play { background: var(--te-orange); color: white; border: none; }
+
+        .inst-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .inst-tab {
+            padding: 5px 15px;
+            font-size: 10px;
+            background: #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .inst-tab.selected {
+            background: var(--te-dark);
+            color: white;
+        }
     </style>
 </head>
 <body>
 
-<div class="workstation">
-    <div class="lcd-container">
-        <div class="lcd-data">
-            <div>
-                <div class="stat-label">BPM SPEED</div>
-                <div class="stat-value" id="val-bpm">128</div>
-            </div>
-            <div>
-                <div class="stat-label">SWING AMT</div>
-                <div class="stat-value" id="val-swing">0%</div>
-            </div>
+<div class="device-frame">
+    <div class="lcd-screen">
+        <div class="lcd-info">
+            <span id="display-name">KICK ENGINE</span>
+            <span id="display-bpm">124 BPM</span>
+            <span id="display-step">STEP: 01</span>
         </div>
-        <div class="lcd-visual">
-            <div style="display:flex; justify-content: space-between; font-size: 8px; margin-bottom: 5px;">
-                <span>OSCILLOSCOPE_V4</span>
-                <span id="val-step">POS: 01/16</span>
-            </div>
-            <canvas id="canvas-scope"></canvas>
-        </div>
-        <div class="lcd-data" style="text-align: right;">
-            <div>
-                <div class="stat-label">MASTER VOL</div>
-                <div class="stat-value">0.0 dB</div>
-            </div>
-            <div>
-                <div class="stat-label">ENGINE</div>
-                <div class="stat-value" style="color:var(--green)">ONLINE</div>
-            </div>
-        </div>
+        <canvas id="scope"></canvas>
     </div>
 
-    <div class="mixer-area" id="track-list">
+    <div>
+        <div class="inst-selector">
+            <div class="inst-tab selected" onclick="switchTrack(0)">KICK</div>
+            <div class="inst-tab" onclick="switchTrack(1)">SNARE</div>
+            <div class="inst-tab" onclick="switchTrack(2)">HIHAT</div>
+            <div class="inst-tab" onclick="switchTrack(3)">SYNTH</div>
         </div>
-
-    <div class="master-footer">
-        <div class="knob-container">
-            <div class="knob-group">
-                <div class="knob-physical" id="knob-bpm" onmousedown="knobEngine(event, 'bpm')">
-                    <div class="knob-pointer" id="ptr-bpm"></div>
-                </div>
-                <div class="track-type">BPM CALIBRATE</div>
-            </div>
-            <div class="knob-group">
-                <div class="knob-physical" id="knob-cutoff" style="border-color:var(--blue)" onmousedown="knobEngine(event, 'cutoff')">
-                    <div class="knob-pointer" id="ptr-cutoff"></div>
-                </div>
-                <div class="track-type">ACID CUTOFF</div>
-            </div>
-            <div class="knob-group">
-                <div class="knob-physical" id="knob-verb" style="border-color:var(--yellow)" onmousedown="knobEngine(event, 'verb')">
-                    <div class="knob-pointer" id="ptr-verb"></div>
-                </div>
-                <div class="track-type">GLOBAL REVERB</div>
-            </div>
-        </div>
-
-        <div class="transport-controls">
-            <div id="rec-status" style="color:red; font-size:10px; font-weight:800"></div>
-            <button class="btn-main btn-rec" id="btn-rec">RECORD</button>
-            <button class="btn-main btn-power" id="btn-power">INITIALIZE</button>
-        </div>
+        <div class="sequencer-grid" id="step-grid"></div>
     </div>
 
-    <div class="key-hint">COMMANDS: [↑/↓] BPM | [SPACE] PLAY/STOP | [R] RANDOM ACID | [C] CLEAR ALL</div>
+    <div class="knob-section">
+        <div class="knob-unit">
+            <div class="knob-circle" id="k1" onmousedown="knobDrag(event, 'pitch')">
+                <div class="knob-indicator" id="ind1"></div>
+            </div>
+            <div class="knob-label">PITCH</div>
+        </div>
+        <div class="knob-unit">
+            <div class="knob-circle" id="k2" style="border-color: var(--te-orange);" onmousedown="knobDrag(event, 'decay')">
+                <div class="knob-indicator" id="ind2"></div>
+            </div>
+            <div class="knob-label">DECAY</div>
+        </div>
+        <div class="knob-unit">
+            <div class="knob-circle" id="k3" style="border-color: var(--te-blue);" onmousedown="knobDrag(event, 'filter')">
+                <div class="knob-indicator" id="ind3"></div>
+            </div>
+            <div class="knob-label">FILTER</div>
+        </div>
+        <div class="knob-unit">
+            <div class="knob-circle" id="k4" style="border-color: var(--te-yellow);" onmousedown="knobDrag(event, 'fx')">
+                <div class="knob-indicator" id="ind4"></div>
+            </div>
+            <div class="knob-label">REVERB</div>
+        </div>
+        <button class="function-btn btn-play" id="play-btn">START</button>
+    </div>
 </div>
 
 <script>
-    // -------------------------------------------------------------------------
-    // 1. AUDIO ENGINE ARCHITECTURE (PRO ROUTING)
-    // -------------------------------------------------------------------------
-    const dest = Tone.context.createMediaStreamDestination();
+    // AUDIO ENGINE
     const limiter = new Tone.Limiter(-1).toDestination();
-    const recorder = new MediaRecorder(dest.stream);
-    const audioChunks = [];
+    const reverb = new Tone.Reverb(2).connect(limiter);
+    const filter = new Tone.Filter(2000, "lowpass").connect(reverb);
+    const analyser = new Tone.Analyser("waveform", 512).connect(filter);
 
-    // Global FX Units
-    const mainReverb = new Tone.Reverb({decay: 3.5, wet: 0.3}).connect(limiter);
-    const mainDelay = new Tone.FeedbackDelay("8n", 0.35).connect(limiter);
-    const acidFilter = new Tone.Filter(1200, "lowpass").connect(limiter);
-    const dist = new Tone.Distortion(0.2).connect(acidFilter);
-    
-    // Master Analyser
-    const analyser = new Tone.Analyser("waveform", 1024);
-    limiter.connect(analyser);
-
-    // Instrument Definitions
     const instruments = [
-        { 
-            id: 'kick', name: 'Punch Kick', type: 'Membrane', fx: false,
-            synth: new Tone.MembraneSynth({octaves:10, pitchDecay:0.05}).connect(limiter), 
-            note: 'G1', steps: Array(16).fill(false) 
-        },
-        { 
-            id: 'snare', name: '909 Snare', type: 'Noise', fx: true,
-            synth: new Tone.NoiseSynth({volume:-8, envelope:{decay:0.2}}).connect(limiter), 
-            note: '', steps: Array(16).fill(false) 
-        },
-        { 
-            id: 'hihat', name: 'Closed Hat', type: 'Metal', fx: true,
-            synth: new Tone.MetalSynth({volume:-18, envelope:{decay:0.05}}).connect(limiter), 
-            note: '', steps: Array(16).fill(false) 
-        },
-        { 
-            id: 'acid', name: '303 Bassline', type: 'Acid Mono', fx: true,
-            synth: new Tone.MonoSynth({oscillator:{type:'sawtooth'}, envelope:{attack:0.01, decay:0.2, sustain:0.1}}).connect(dist), 
-            note: 'G2', steps: Array(16).fill(false) 
-        },
-        { 
-            id: 'lead', name: 'FM Lead', type: 'Frequency Mod', fx: true,
-            synth: new Tone.FMSynth({volume:-12}).connect(limiter), 
-            note: 'C4', steps: Array(16).fill(false) 
-        },
-        { 
-            id: 'perc', name: 'Rimshot', type: 'Membrane', fx: true,
-            synth: new Tone.MembraneSynth({volume:-10, pitchDecay:0.01}).connect(mainReverb), 
-            note: 'G4', steps: Array(16).fill(false) 
-        }
+        { name: 'KICK', synth: new Tone.MembraneSynth().connect(filter), note: 'G1', steps: Array(16).fill(false), params: { pitch: 44, decay: 0.5 } },
+        { name: 'SNARE', synth: new Tone.NoiseSynth({volume: -10}).connect(filter), note: '', steps: Array(16).fill(false), params: { pitch: 0, decay: 0.1 } },
+        { name: 'HIHAT', synth: new Tone.MetalSynth({volume: -15}).connect(filter), note: '', steps: Array(16).fill(false), params: { pitch: 0, decay: 0.05 } },
+        { name: 'SYNTH', synth: new Tone.MonoSynth({oscillator: {type:'sawtooth'}}).connect(filter), note: 'G2', steps: Array(16).fill(false), params: { pitch: 0, decay: 0.1 } }
     ];
 
-    // Connect everything to the recorder
-    instruments.forEach(inst => inst.synth.connect(dest));
+    let currentTrack = 0;
+    let stepIndex = 0;
 
-    // -------------------------------------------------------------------------
-    // 2. UI RENDER ENGINE
-    // -------------------------------------------------------------------------
-    const trackList = document.getElementById('track-list');
-
-    function renderMixer() {
-        trackList.innerHTML = '';
-        instruments.forEach((inst, i) => {
-            const strip = document.createElement('div');
-            strip.className = 'track-strip';
-            
-            strip.innerHTML = `
-                <div class="track-header">
-                    <div class="track-name">${inst.name}</div>
-                    <div class="track-type">${inst.type}</div>
-                </div>
-                <div class="macro-grid">
-                    <button class="m-btn" onclick="macroFill(${i}, 4)">1/4</button>
-                    <button class="m-btn" onclick="macroFill(${i}, 2)">1/2</button>
-                    <button class="m-btn" onclick="macroFill(${i}, 1)">1/8</button>
-                    <button class="m-btn" onclick="macroClear(${i})" style="color:red">X</button>
-                </div>
-                <div class="routing-unit">
-                    <div class="track-type">FX BUS</div>
-                    <div class="toggle-fx ${inst.fx ? 'active' : ''}" onclick="toggleRouting(${i})"></div>
-                </div>
-            `;
-
-            const grid = document.createElement('div');
-            grid.className = 'step-grid';
-            inst.steps.forEach((on, s) => {
-                const btn = document.createElement('button');
-                btn.className = `step ${on ? 'on' : ''}`;
-                btn.onclick = () => { inst.steps[s] = !on; renderMixer(); };
-                grid.appendChild(btn);
-            });
-
-            strip.appendChild(grid);
-            trackList.appendChild(strip);
+    // UI GENERATOR
+    const grid = document.getElementById('step-grid');
+    function drawSteps() {
+        grid.innerHTML = '';
+        instruments[currentTrack].steps.forEach((on, i) => {
+            const b = document.createElement('button');
+            b.className = 'step-btn' + (on ? ' active' : '');
+            b.onclick = () => {
+                instruments[currentTrack].steps[i] = !on;
+                drawSteps();
+            };
+            grid.appendChild(b);
         });
     }
+    drawSteps();
 
-    // -------------------------------------------------------------------------
-    // 3. LOGICA DI SEQUENCING E ROUTING
-    // -------------------------------------------------------------------------
-    window.macroFill = (idx, gap) => {
-        instruments[idx].steps = instruments[idx].steps.map((_, i) => i % gap === 0);
-        renderMixer();
-    };
+    function switchTrack(i) {
+        currentTrack = i;
+        document.querySelectorAll('.inst-tab').forEach((t, idx) => t.classList.toggle('selected', idx === i));
+        document.getElementById('display-name').innerText = instruments[i].name + ' ENGINE';
+        drawSteps();
+    }
 
-    window.macroClear = (idx) => {
-        instruments[idx].steps = Array(16).fill(false);
-        renderMixer();
-    };
-
-    window.toggleRouting = (idx) => {
-        const inst = instruments[idx];
-        inst.fx = !inst.fx;
-        inst.synth.disconnect();
-        if(inst.fx) {
-            inst.synth.connect(mainReverb);
-            inst.synth.connect(mainDelay);
-        } else {
-            inst.synth.connect(limiter);
-        }
-        inst.synth.connect(dest); // Sempre connesso al recorder
-        renderMixer();
-    };
-
-    // -------------------------------------------------------------------------
-    // 4. TRANSPORT & EVENT HANDLERS (KEYBOARD)
-    // -------------------------------------------------------------------------
-    let currentStep = 0;
-    const sequencerLoop = new Tone.Loop(time => {
-        instruments.forEach(inst => {
-            if (inst.steps[currentStep]) {
+    // TRANSPORT
+    const loop = new Tone.Loop(time => {
+        instruments.forEach((inst, i) => {
+            if (inst.steps[stepIndex]) {
                 if (inst.note) inst.synth.triggerAttackRelease(inst.note, "16n", time);
                 else inst.synth.triggerAttackRelease("16n", time);
             }
         });
 
         Tone.Draw.schedule(() => {
-            document.querySelectorAll('.step').forEach(s => s.classList.remove('playing'));
-            const rows = document.querySelectorAll('.step-grid');
-            rows.forEach(r => r.children[currentStep].classList.add('playing'));
-            document.getElementById('val-step').innerText = `POS: ${(currentStep+1).toString().padStart(2, '0')}/16`;
+            const btns = document.querySelectorAll('.step-btn');
+            btns.forEach((b, idx) => b.classList.toggle('playing', idx === stepIndex));
+            document.getElementById('display-step').innerText = 'STEP: ' + (stepIndex + 1).toString().padStart(2, '0');
         }, time);
 
-        currentStep = (currentStep + 1) % 16;
+        stepIndex = (stepIndex + 1) % 16;
     }, "16n");
 
-    window.addEventListener('keydown', e => {
-        if (e.key === 'ArrowUp') updateBPM(2);
-        if (e.key === 'ArrowDown') updateBPM(-2);
-        if (e.key === ' ') togglePower();
-        if (e.key === 'r' || e.key === 'R') { // Acid Chaos
-            instruments[3].steps = instruments[3].steps.map(() => Math.random() > 0.75);
-            renderMixer();
-        }
-        if (e.key === 'c' || e.key === 'C') {
-            instruments.forEach(inst => inst.steps = Array(16).fill(false));
-            renderMixer();
-        }
-    });
-
-    function updateBPM(delta) {
-        let newBpm = Tone.Transport.bpm.value + delta;
-        Tone.Transport.bpm.value = newBpm;
-        document.getElementById('val-bpm').innerText = Math.round(newBpm);
-        // Sync knob rotation
-        let rot = (newBpm - 128) * 2;
-        document.getElementById('ptr-bpm').style.transform = `translateX(-50%) rotate(${rot}deg)`;
-    }
-
-    async function togglePower() {
+    document.getElementById('play-btn').onclick = async () => {
         await Tone.start();
-        const btn = document.getElementById('btn-power');
         if (Tone.Transport.state !== 'started') {
             Tone.Transport.start();
-            sequencerLoop.start();
-            btn.innerText = "TERMINATE";
-            btn.classList.add('on');
-            document.getElementById('btn-rec').style.display = 'block';
+            loop.start();
+            document.getElementById('play-btn').innerText = 'STOP';
         } else {
             Tone.Transport.stop();
-            sequencerLoop.stop();
-            btn.innerText = "INITIALIZE";
-            btn.classList.remove('on');
-        }
-    }
-    document.getElementById('btn-power').onclick = togglePower;
-
-    // -------------------------------------------------------------------------
-    // 5. RECORDER SYSTEM
-    // -------------------------------------------------------------------------
-    const recBtn = document.getElementById('btn-rec');
-    recBtn.onclick = () => {
-        if (recorder.state === 'inactive') {
-            audioChunks.length = 0;
-            recorder.start();
-            recBtn.innerText = "STOP & SAVE";
-            recBtn.classList.add('active');
-            document.getElementById('rec-status').innerText = "RECORDING LIVE...";
-        } else {
-            recorder.stop();
-            recBtn.innerText = "RECORD";
-            recBtn.classList.remove('active');
-            document.getElementById('rec-status').innerText = "";
+            loop.stop();
+            document.getElementById('play-btn').innerText = 'START';
         }
     };
 
-    recorder.ondataavailable = e => audioChunks.push(e.data);
-    recorder.onstop = () => {
-        const blob = new Blob(audioChunks, { type: 'audio/webm' });
-        const url = URL.createObjectURL(blob);
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = 'te_legacy_session.webm';
-        anchor.click();
-    };
-
-    // -------------------------------------------------------------------------
-    // 6. KNOB ENGINE & VISUALIZER
-    // -------------------------------------------------------------------------
-    window.knobEngine = (e, type) => {
+    // KNOB INTERACTION (Simulated)
+    function knobDrag(e, param) {
         let startY = e.clientY;
-        const moveHandler = (moveEvent) => {
-            let delta = startY - moveEvent.clientY;
-            let val = Math.min(Math.max(delta, -100), 100);
-            document.getElementById(`ptr-${type}`).style.transform = `translateX(-50%) rotate(${val}deg)`;
+        const move = (moveE) => {
+            let diff = startY - moveE.clientY;
+            let val = Math.min(Math.max(diff * 2, -150), 150);
             
-            if (type === 'bpm') {
-                let newBpm = 128 + (val);
-                Tone.Transport.bpm.value = newBpm;
-                document.getElementById('val-bpm').innerText = Math.round(newBpm);
-            }
-            if (type === 'cutoff') acidFilter.frequency.value = 1000 + (val * 15);
-            if (type === 'verb') mainReverb.wet.value = (val + 100) / 200;
+            if (param === 'filter') filter.frequency.value = 1000 + (val * 10);
+            if (param === 'fx') reverb.wet.value = (val + 150) / 300;
+            
+            // Visual feedback
+            let indId = param === 'pitch' ? 'ind1' : param === 'decay' ? 'ind2' : param === 'filter' ? 'ind3' : 'ind4';
+            document.getElementById(indId).style.transform = `translateX(-50%) rotate(${val}deg)`;
         };
-        const upHandler = () => window.removeEventListener('mousemove', moveHandler);
-        window.addEventListener('mousemove', moveHandler);
-        window.addEventListener('mouseup', upHandler);
-    };
+        const up = () => {
+            window.removeEventListener('mousemove', move);
+            window.removeEventListener('mouseup', up);
+        };
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', up);
+    }
 
-    const canvas = document.getElementById('canvas-scope');
+    // VISUALIZER
+    const canvas = document.getElementById('scope');
     const ctx = canvas.getContext('2d');
-    function animate() {
-        requestAnimationFrame(animate);
-        const buffer = analyser.getValue();
+    function draw() {
+        requestAnimationFrame(draw);
+        const data = analyser.getValue();
         ctx.fillStyle = '#000';
         ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.strokeStyle = '#2ecc71';
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.strokeStyle = '#ff4d00';
-        ctx.lineWidth = 3;
-        for(let i=0; i<buffer.length; i++) {
-            const x = (i/buffer.length) * canvas.width;
-            const y = (buffer[i]+1) * (canvas.height/2);
-            i === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+        for(let i=0; i<data.length; i++) {
+            const x = (i/data.length) * canvas.width;
+            const y = (data[i]+1) * (canvas.height/2);
+            i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
         }
         ctx.stroke();
     }
-
-    animate();
-    renderMixer();
+    draw();
 </script>
 </body>
 </html>
