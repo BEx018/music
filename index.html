@@ -2,185 +2,208 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>CHAOS ENGINE v666 - EXTREME AUDIO ARCHITECT</title>
+    <title>X-PHASE ULTIMATE DAW | PROFESSIONAL GRADE</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@300;500&display=swap" rel="stylesheet">
     <style>
-        :root { --danger: #ff003c; --void: #000000; --acid: #ccff00; --electric: #00e5ff; }
-        body { background: var(--void); color: white; font-family: 'IBM Plex Mono', monospace; margin: 0; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+        :root { --bg: #0b0e14; --panel: #151921; --accent: #00ff9d; --accent-dark: #008f58; --text: #a0aabf; --active: #ff0055; --border: #252b35; }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Roboto Mono', monospace; margin: 0; padding: 10px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* Interfaccia Brutalista */
-        .mainframe { width: 95%; max-width: 1200px; padding: 40px; border: 2px solid #1a1a1a; margin-top: 20px; background: linear-gradient(145deg, #0a0a0a, #111); position: relative; }
-        .glitch-title { font-size: 3rem; font-weight: 900; color: var(--acid); text-transform: uppercase; margin: 0; letter-spacing: -5px; }
+        /* HEADER & TRANSPORT */
+        header { background: var(--panel); border: 1px solid var(--border); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 4px; margin-bottom: 10px; }
+        .logo { font-family: 'Orbitron', sans-serif; font-weight: 700; color: var(--accent); font-size: 1.2rem; letter-spacing: 2px; }
+        .transport { display: flex; gap: 20px; align-items: center; }
+        .btn { background: #252b35; border: 1px solid #3b4452; color: white; padding: 8px 20px; cursor: pointer; border-radius: 3px; font-weight: bold; transition: 0.2s; }
+        .btn:hover { background: #3b4452; }
+        .btn.primary { background: var(--accent); color: black; border: none; }
+        .btn.active { background: var(--active); color: white; box-shadow: 0 0 15px var(--active); }
         
-        /* Visualizer X-Y Mode */
-        .vector-scope { height: 300px; background: #000; border: 1px solid #222; margin: 20px 0; position: relative; box-shadow: inset 0 0 50px var(--acid); }
-        canvas { width: 100%; height: 100%; filter: blur(0.5px) contrast(1.2); }
+        /* MAIN LAYOUT */
+        .main-container { display: grid; grid-template-columns: 1fr 320px; grid-template-rows: 1fr 280px; gap: 10px; flex-grow: 1; height: calc(100vh - 100px); }
 
-        /* Rack Modulare */
-        .rack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .module { background: #000; border: 1px solid #333; padding: 20px; position: relative; overflow: hidden; }
-        .module::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--electric); }
-        .module.red::before { background: var(--danger); }
-        
-        .knob-label { font-size: 10px; color: #555; display: flex; justify-content: space-between; margin-bottom: 8px; }
-        input[type=range] { width: 100%; appearance: none; background: #222; height: 2px; outline: none; margin: 15px 0; }
-        input[type=range]::-webkit-slider-thumb { appearance: none; width: 15px; height: 15px; background: white; cursor: pointer; border-radius: 0; }
+        /* SEQUENCER AREA */
+        .sequencer-card { background: var(--panel); border: 1px solid var(--border); border-radius: 4px; padding: 15px; overflow-y: auto; }
+        .track-row { display: grid; grid-template-columns: 120px repeat(16, 1fr); gap: 4px; margin-bottom: 6px; align-items: center; }
+        .track-name { font-size: 0.7rem; font-weight: 700; color: #6b768a; text-transform: uppercase; border-right: 2px solid var(--border); padding-right: 10px; }
+        .step { height: 35px; background: #1c232d; border-radius: 2px; cursor: pointer; transition: 0.1s; border: 1px solid transparent; }
+        .step:nth-child(4n+3) { background: #232b38; }
+        .step.on { background: var(--accent); box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        .step.playing { border: 2px solid white; filter: brightness(1.5); }
 
-        /* Pulsantiera di Controllo */
-        .bridge { margin-top: 40px; display: flex; gap: 20px; align-items: center; background: #000; padding: 20px; border: 1px solid #333; }
-        .heavy-btn { background: var(--danger); color: white; border: none; padding: 25px 60px; font-weight: 900; font-size: 1.5rem; cursor: pointer; transition: 0.1s; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%); }
-        .heavy-btn:active { transform: scale(0.95); filter: brightness(1.5); }
+        /* MIXER AREA */
+        .mixer-card { background: var(--panel); border: 1px solid var(--border); border-radius: 4px; padding: 15px; display: flex; gap: 10px; overflow-x: auto; grid-column: 1 / 2; }
+        .channel-strip { width: 80px; background: #1c232d; display: flex; flex-direction: column; align-items: center; padding: 10px 5px; border-radius: 3px; flex-shrink: 0; }
+        .fader-container { height: 150px; position: relative; width: 30px; margin: 10px 0; background: #0b0e14; border-radius: 20px; }
+        .fader { appearance: none; width: 150px; height: 30px; background: transparent; transform: rotate(-90deg); position: absolute; top: 60px; left: -60px; cursor: pointer; }
+        .vu-meter { width: 6px; height: 150px; background: #000; margin-left: 10px; border-radius: 2px; position: relative; overflow: hidden; }
+        .vu-fill { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, #00ff9d, #ffff00, #ff0000); height: 0%; transition: 0.05s; }
+
+        /* FX & ANALYZER */
+        .fx-card { background: var(--panel); border: 1px solid var(--border); border-radius: 4px; padding: 15px; grid-column: 2 / 3; grid-row: 1 / 3; display: flex; flex-direction: column; gap: 15px; }
+        .analyzer-box { height: 150px; background: #000; border: 1px solid #333; border-radius: 4px; position: relative; }
+        canvas { width: 100%; height: 100%; }
+        .knob-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .knob-ui { background: #1c232d; padding: 10px; border-radius: 4px; text-align: center; }
+        .knob-ui label { font-size: 0.6rem; display: block; margin-bottom: 5px; color: var(--accent); }
         
-        .status-led { width: 12px; height: 12px; border-radius: 50%; background: #300; display: inline-block; }
-        .status-led.active { background: var(--acid); box-shadow: 0 0 15px var(--acid); }
+        /* KEYBOARD */
+        .keys { display: flex; justify-content: center; background: #1c232d; padding: 10px; border-radius: 4px; margin-top: 10px; }
+        .key { width: 40px; height: 120px; background: white; border: 1px solid #ccc; cursor: pointer; border-radius: 0 0 5px 5px; }
+        .key.black { background: black; width: 30px; height: 80px; margin-left: -15px; margin-right: -15px; z-index: 2; border: none; }
     </style>
 </head>
 <body>
 
-<div class="mainframe">
-    <h1 class="glitch-title">CHAOS_ENGINE.exe</h1>
-    
-    <div class="vector-scope"><canvas id="canvas"></canvas></div>
+<header>
+    <div class="logo">X-PHASE <span style="font-weight:300; font-size:0.8rem">ULTIMATE v4.2</span></div>
+    <div class="transport">
+        <div><label style="font-size: 0.6rem;">BPM</label><input type="number" id="bpm" value="128" style="background:#000; color:var(--accent); border:1px solid #3b4452; padding:5px; width:60px; margin-left:10px;"></div>
+        <button id="play" class="btn primary">INITIALIZE ENGINE</button>
+    </div>
+</header>
 
-    <div class="rack-grid">
-        <div class="module red">
-            <h3 style="color:var(--danger)">01. NEURAL BASS (303 ON STEROIDS)</h3>
-            <div class="knob-label">DISTORSIONE ATOMICA <span id="distVal">0.1</span></div>
-            <input type="range" id="dist" min="0" max="1" step="0.01" value="0.1">
-            <div class="knob-label">RESONANCE PEAK</div>
-            <input type="range" id="res" min="0" max="40" value="15">
-            <div class="knob-label">FM MODULATION</div>
-            <input type="range" id="fm" min="0" max="100" value="0">
-        </div>
+<div class="main-container">
+    <div class="sequencer-card" id="seq-grid"></div>
 
-        <div class="module">
-            <h3 style="color:var(--electric)">02. KINETIC DRUMS</h3>
-            <div class="knob-label">BIT-CRUSH (LO-FI)</div>
-            <input type="range" id="crush" min="1" max="16" value="16">
-            <div class="knob-label">PUNCH DEPTH</div>
-            <input type="range" id="kickDecay" min="0.05" max="2" step="0.05" value="0.5">
+    <div class="fx-card">
+        <div class="analyzer-box"><canvas id="scope"></canvas></div>
+        <div class="knob-grid">
+            <div class="knob-ui"><label>MASTER REV</label><input type="range" id="m-rev" min="0" max="1" step="0.01" value="0.2"></div>
+            <div class="knob-ui"><label>MASTER DEL</label><input type="range" id="m-del" min="0" max="1" step="0.01" value="0.1"></div>
+            <div class="knob-ui"><label>GLUE COMP</label><input type="range" id="m-comp" min="-40" max="0" value="-20"></div>
+            <div class="knob-ui"><label>303 RESONANCE</label><input type="range" id="b-res" min="0" max="20" value="5"></div>
         </div>
-
-        <div class="module">
-            <h3 style="color:white">03. VOID VERB</h3>
-            <div class="knob-label">DIMENSIONE STANZA</div>
-            <input type="range" id="revSize" min="0" max="1" step="0.01" value="0.5">
-            <div class="knob-label">GHOST FEEDBACK</div>
-            <input type="range" id="delay" min="0" max="0.9" step="0.01" value="0.3">
-        </div>
-
-        <div class="module">
-            <h3 style="color:var(--acid)">04. ENTROPY MOD</h3>
-            <div class="knob-label">AUTO-EVOLUZIONE (AI)</div>
-            <input type="range" id="entropy" min="0" max="100" value="0">
-            <div class="knob-label">MASTER BPM</div>
-            <input type="range" id="bpm" min="40" max="220" value="135">
-        </div>
+        <div class="keys" id="keyboard"></div>
     </div>
 
-    <div class="bridge">
-        <button id="ignite" class="heavy-btn">INITIALIZE CORE</button>
-        <div>
-            <div id="led" class="status-led"></div>
-            <span style="font-size: 10px; margin-left: 10px; letter-spacing: 2px;">SYNC STATUS: <span id="syncText">OFFLINE</span></span>
-        </div>
-    </div>
+    <div class="mixer-card" id="mixer-strips"></div>
 </div>
 
 <script>
-    // --- IL MOTORE DEL CAOS ---
-    const distortion = new Tone.Distortion(0.1).toDestination();
-    const bitCrusher = new Tone.BitCrusher(16).connect(distortion);
-    const reverb = new Tone.Reverb({decay: 5, wet: 0.3}).connect(bitCrusher);
-    const delay = new Tone.FeedbackDelay("8n.", 0.3).connect(reverb);
-    const masterFilter = new Tone.Filter(2000, "lowpass").connect(delay);
-    const analyser = new Tone.Analyser("waveform", 1024).connect(masterFilter);
+    // --- AUDIO ARCHITECTURE ---
+    const limiter = new Tone.Limiter(-1).toDestination();
+    const compressor = new Tone.Compressor(-20, 3).connect(limiter);
+    const reverb = new Tone.Reverb({decay: 3, wet: 0.2}).connect(compressor);
+    const delay = new Tone.FeedbackDelay("8n", 0.3).connect(compressor);
+    const analyser = new Tone.Analyser("waveform", 1024).connect(limiter);
+    const meter = new Tone.Meter().connect(limiter);
 
-    // Strumenti Estremi
-    const kick = new Tone.MembraneSynth({volume: 5, octaves: 12}).connect(masterFilter);
-    const bass = new Tone.MonoSynth({
-        oscillator: { type: "sawtooth" },
-        envelope: { attack: 0.02, decay: 0.1, sustain: 0.5, release: 1 }
-    }).connect(masterFilter);
-    const fmSynth = new Tone.FMSynth({volume: -10}).connect(reverb);
+    // Instrument Definitions
+    const instruments = [
+        { id: 'kick', name: 'Kick Drum', type: 'Membrane', synth: new Tone.MembraneSynth().connect(compressor), note: 'G1', color: '#ff0055' },
+        { id: 'snare', name: 'Snare 909', type: 'Noise', synth: new Tone.NoiseSynth({volume:-10}).connect(compressor), note: '', color: '#ffcc00' },
+        { id: 'clhat', name: 'Closed Hat', type: 'Metal', synth: new Tone.MetalSynth({volume:-15, envelope:{decay:0.05}}).connect(compressor), note: '', color: '#00ffcc' },
+        { id: 'ophat', name: 'Open Hat', type: 'Metal', synth: new Tone.MetalSynth({volume:-12, envelope:{decay:0.3}}).connect(compressor), note: '', color: '#00ffcc' },
+        { id: 'bass', name: 'Acid 303', type: 'Mono', synth: new Tone.MonoSynth({oscillator:{type:'sawtooth'}, volume:-12}).connect(new Tone.Filter(800, 'lowpass').connect(delay)), note: 'G2', color: '#bc13fe' },
+        { id: 'lead', name: 'Poly Lead', type: 'Poly', synth: new Tone.PolySynth().connect(reverb), note: 'C4', color: '#00ccff' }
+    ];
 
-    // Algoritmo di Generazione Sequenziale
-    let step = 0;
-    const notes = ["G1", "G2", "Bb1", "F1", "C2", "Ab1"];
-    
-    const loop = new Tone.Loop(time => {
-        const entropy = document.getElementById('entropy').value / 100;
+    const state = instruments.map(() => Array(16).fill(false));
+    const meters = instruments.map(() => new Tone.Meter());
+    instruments.forEach((inst, i) => inst.synth.connect(meters[i]));
 
-        // Logica Kick (Techno Aggressiva)
-        if (step % 4 === 0 || (entropy > 0.5 && Math.random() > 0.7)) {
-            kick.triggerAttackRelease("G1", "8n", time);
+    // --- UI GENERATION ---
+    const gridEl = document.getElementById('seq-grid');
+    const mixerEl = document.getElementById('mixer-strips');
+
+    instruments.forEach((inst, i) => {
+        // Build Track Row
+        const row = document.createElement('div');
+        row.className = 'track-row';
+        row.innerHTML = `<div class="track-name">${inst.name}</div>`;
+        for(let s=0; s<16; s++) {
+            const btn = document.createElement('div');
+            btn.className = 'step';
+            btn.onclick = () => { state[i][s] = !state[i][s]; btn.classList.toggle('on'); };
+            row.appendChild(btn);
         }
+        gridEl.appendChild(row);
 
-        // Logica Bass (Sequenza Generativa)
-        if (Math.random() > (0.2 - entropy)) {
-            let n = notes[Math.floor(Math.random() * notes.length)];
-            bass.triggerAttackRelease(n, "16n", time);
-        }
+        // Build Mixer Strip
+        const strip = document.createElement('div');
+        strip.className = 'channel-strip';
+        strip.innerHTML = `
+            <div style="font-size:8px; color:var(--accent)">CH-${i+1}</div>
+            <div class="vu-meter"><div id="vu-${i}" class="vu-fill"></div></div>
+            <div class="fader-container">
+                <input type="range" class="fader" min="-40" max="0" value="${inst.synth.volume.value}" 
+                       oninput="instruments[${i}].synth.volume.value = this.value">
+            </div>
+            <div style="font-size:7px;">${inst.id.toUpperCase()}</div>
+        `;
+        mixerEl.appendChild(strip);
+    });
 
-        // FM Glitch (Assurdità)
-        if (entropy > 0.3 && Math.random() > 0.8) {
-            fmSynth.triggerAttackRelease("C5", "32n", time, Math.random());
-        }
+    // Keyboard Generation
+    const keyNotes = ['C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4', 'G#4', 'A4', 'A#4', 'B4'];
+    keyNotes.forEach(n => {
+        const k = document.createElement('div');
+        k.className = n.includes('#') ? 'key black' : 'key';
+        k.onmousedown = () => instruments[5].synth.triggerAttack(n);
+        k.onmouseup = () => instruments[5].synth.triggerRelease(n);
+        document.getElementById('keyboard').appendChild(k);
+    });
 
-        // Auto-Modulazione (L'AI che "muove" i cursori)
-        if (entropy > 0.7) {
-            masterFilter.frequency.rampTo(Math.random() * 5000 + 100, "16n");
-        }
-
-        step = (step + 1) % 16;
+    // --- ENGINE LOGIC ---
+    let idx = 0;
+    Tone.Transport.scheduleRepeat(time => {
+        let step = idx % 16;
+        instruments.forEach((inst, i) => {
+            const domSteps = document.querySelectorAll(`.track-row:nth-child(${i+1}) .step`);
+            domSteps.forEach(d => d.classList.remove('playing'));
+            domSteps[step].classList.add('playing');
+            if(state[i][step]) {
+                if(inst.note !== '') inst.synth.triggerAttackRelease(inst.note, "16n", time);
+                else inst.synth.triggerAttackRelease("16n", time);
+            }
+        });
+        idx++;
     }, "16n");
 
-    // --- INTERAZIONE & CALIBRAZIONE ---
-    document.getElementById('ignite').onclick = async () => {
+    // --- INTERACTION & VISUALS ---
+    document.getElementById('play').onclick = async () => {
         await Tone.start();
-        if (Tone.Transport.state !== 'started') {
+        if(Tone.Transport.state !== 'started') {
             Tone.Transport.start();
-            loop.start();
-            document.getElementById('ignite').innerText = "TERMINATE CORE";
-            document.getElementById('led').classList.add('active');
-            document.getElementById('syncText').innerText = "ONLINE / DISTORTING";
+            document.getElementById('play').innerText = "STOP ENGINE";
+            document.getElementById('play').classList.add('active');
         } else {
             Tone.Transport.stop();
-            loop.stop();
-            document.getElementById('ignite').innerText = "INITIALIZE CORE";
-            document.getElementById('led').classList.remove('active');
-            document.getElementById('syncText').innerText = "OFFLINE";
+            document.getElementById('play').innerText = "START ENGINE";
+            document.getElementById('play').classList.remove('active');
         }
     };
 
-    // Mapping Controlli
-    document.getElementById('dist').oninput = (e) => distortion.distortion = e.target.value;
-    document.getElementById('res').oninput = (e) => bass.filter.Q.value = e.target.value;
-    document.getElementById('crush').oninput = (e) => bitCrusher.bits.value = e.target.value;
-    document.getElementById('revSize').oninput = (e) => reverb.wet.value = e.target.value;
-    document.getElementById('bpm').oninput = (e) => Tone.Transport.bpm.value = e.target.value;
-    document.getElementById('fm').oninput = (e) => fmSynth.harmonicity.value = e.target.value;
+    document.getElementById('bpm').onchange = (e) => Tone.Transport.bpm.value = e.target.value;
+    document.getElementById('m-rev').oninput = (e) => reverb.wet.value = e.target.value;
+    document.getElementById('m-del').oninput = (e) => delay.wet.value = e.target.value;
 
-    // Visualizer Vector (X-Y)
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-    function render() {
-        requestAnimationFrame(render);
-        const data = analyser.getValue();
-        ctx.fillStyle = "rgba(0,0,0,0.1)";
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.beginPath();
-        ctx.strokeStyle = "#ccff00";
-        ctx.lineWidth = 2;
-        
-        for(let i=0; i<data.length; i+=2) {
-            const x = (data[i] + 1) * (canvas.width / 2);
-            const y = (data[i+1] + 1) * (canvas.height / 2);
-            i === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    // UI Refresh Loop (VU Meters & Analyzer)
+    const scopeCanvas = document.getElementById("scope");
+    const sCtx = scopeCanvas.getContext("2d");
+
+    function frame() {
+        requestAnimationFrame(frame);
+        // Master Analyzer
+        const wave = analyser.getValue();
+        sCtx.fillStyle = "rgba(0,0,0,0.2)";
+        sCtx.fillRect(0,0,scopeCanvas.width,scopeCanvas.height);
+        sCtx.beginPath(); sCtx.strokeStyle = "#00ff9d"; sCtx.lineWidth = 2;
+        for(let i=0; i<wave.length; i++){
+            const x = (i/wave.length) * scopeCanvas.width;
+            const y = (wave[i]+1) * (scopeCanvas.height/2);
+            i === 0 ? sCtx.moveTo(x,y) : sCtx.lineTo(x,y);
         }
-        ctx.stroke();
+        sCtx.stroke();
+
+        // VU Meters Update
+        instruments.forEach((_, i) => {
+            const level = Tone.dbToGain(meters[i].getValue());
+            document.getElementById(`vu-${i}`).style.height = (level * 100) + "%";
+        });
     }
-    render();
+    frame();
 </script>
 </body>
 </html>
