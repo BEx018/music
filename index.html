@@ -120,4 +120,255 @@
 
         /* SEQUENCER GRID */
         .grid { display: grid; grid-template-columns: repeat(16, 1fr); gap: 5px; }
+        .s-node {
+            height: 32px;
+            background: #d0d0d0;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            box-shadow: inset 1px 1px 2px #b0b0b0;
+        }
+        .s-node.on { background: var(--te-dark); box-shadow: 0 0 8px rgba(0,0,0,0.4); }
+        .s-node.playing { background: var(--te-orange) !important; transform: scaleY(1.15); }
+
+        /* FOOTER CONTROLS */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 2px solid #ddd;
+        }
+        .knob-row { display: flex; gap: 25px; }
+        .knob-wrapper { text-align: center; }
+        .knob-ui {
+            width: 50px;
+            height: 50px;
+            background: #fff;
+            border-radius: 50%;
+            border: 3px solid #ccc;
+            margin-bottom: 5px;
+            cursor: ns-resize;
+            position: relative;
+            box-shadow: 2px 4px 8px #bbb;
+        }
+        .knob-mark {
+            position: absolute;
+            width: 4px;
+            height: 12px;
+            background: var(--te-orange);
+            left: 50%;
+            top: 4px;
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(0deg);
+        }
+
+        .main-controls { display: flex; gap: 15px; }
+        .pwr-btn {
+            background: var(--te-dark);
+            color: white;
+            border: none;
+            padding: 15px 45px;
+            border-radius: 50px;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .pwr-btn.on { background: var(--te-orange); box-shadow: 0 0 20px rgba(255,77,0,0.4); }
+    </style>
+</head>
+<body>
+
+<div class="device">
+    <div class="display">
+        <div class="display-meta">
+            <span id="txt-track">SYSTEM: READY</span>
+            <span id="txt-bpm">128 BPM</span>
+            <span id="txt-fx">FX BUS: ACTIVE</span>
+        </div>
+        <canvas id="scope"></canvas>
+    </div>
+
+    <div class="workspace" id="track-list">
+        </div>
+
+    <div class="footer">
+        <div class="knob-row">
+            <div class="knob-wrapper">
+                <div class="knob-ui" onmousedown="handleKnob(event, 'bpm')"><div class="knob-mark" id="k-bpm"></div></div>
+                <div style="font-size:8px">BPM</div>
+            </div>
+            <div class="knob-wrapper">
+                <div class="knob-ui" style="border-color: var(--te-blue);" onmousedown="handleKnob(event, 'verb')"><div class="knob-mark" id="k-verb"></div></div>
+                <div style="font-size:8px">REVERB</div>
+            </div>
+            <div class="knob-wrapper">
+                <div class="knob-ui" style="border-color: var(--te-yellow);" onmousedown="handleKnob(event, 'del')"><div class="knob-mark" id="k-del"></div></div>
+                <div style="font-size:8px">DELAY</div>
+            </div>
+        </div>
+
+        <div class="main-controls">
+            <button class="pwr-btn" id="pwr">POWER ON</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- AUDIO CORE & ROUTING ---
+    const limiter = new Tone.Limiter(-1).toDestination();
+    
+    // FX BUSES
+    const reverb = new Tone.Reverb({decay: 3, wet: 0.3}).connect(limiter);
+    const delay = new Tone.FeedbackDelay("8n", 0.4).connect(limiter);
+    
+    // Analizzatore
+    const analyser = new Tone.Analyser("waveform", 1024);
+    limiter.connect(analyser);
+
+    const instruments = [
+        { id: 'KICK', synth: new Tone.MembraneSynth(), note: 'G1', steps: Array(16).fill(false), fx: true },
+        { id: 'SNARE', synth: new Tone.NoiseSynth({volume: -8}), note: '', steps: Array(16).fill(false), fx: true },
+        { id: 'HIHAT', synth: new Tone.MetalSynth({volume: -15}), note: '', steps: Array(16).fill(false), fx: false },
+        { id: 'BASS', synth: new Tone.MonoSynth({oscillator:{type:'sawtooth'}, volume:-12}), note: 'G2', steps: Array(16).fill(false), fx: true }
+    ];
+
+    // Colleghiamo inizialmente
+    instruments.forEach(inst => {
+        inst.synth.disconnect();
+        if(inst.fx) {
+            inst.synth.connect(reverb);
+            inst.synth.connect(delay);
+        } else {
+            inst.synth.connect(limiter);
+        }
+    });
+
+    // --- UI ENGINE ---
+    const container = document.getElementById('track-list');
+
+    function updateUI() {
+        container.innerHTML = '';
+        instruments.forEach((inst, i) => {
+            const track = document.createElement('div');
+            track.className = 'track-card';
+
+            track.innerHTML = `
+                <div class="track-label">${inst.id}</div>
+                <div class="macro-btns">
+                    <button class="m-btn" onclick="quickFill(${i}, 4)">1/4</button>
+                    <button class="m-btn" onclick="quickFill(${i}, 2)">1/2</button>
+                    <button class="m-btn" onclick="quickFill(${i}, 1)">1/8</button>
+                </div>
+                <div class="fx-toggle ${inst.fx ? 'active' : ''}" onclick="toggleFX(${i})"></div>
+            `;
+
+            const grid = document.createElement('div');
+            grid.className = 'grid';
+            inst.steps.forEach((on, s) => {
+                const node = document.createElement('button');
+                node.className = `s-node ${on ? 'on' : ''}`;
+                node.onclick = () => { inst.steps[s] = !on; updateUI(); };
+                grid.appendChild(node);
+            });
+            track.appendChild(grid);
+            container.appendChild(track);
+        });
+    }
+
+    // --- LOGICA MACRO & ROUTING ---
+    window.quickFill = (idx, gap) => {
+        instruments[idx].steps = instruments[idx].steps.map((_, i) => i % gap === 0);
+        updateUI();
+    };
+
+    window.toggleFX = (idx) => {
+        instruments[idx].fx = !instruments[idx].fx;
+        const inst = instruments[idx];
+        inst.synth.disconnect();
+        if(inst.fx) {
+            inst.synth.connect(reverb);
+            inst.synth.connect(delay);
+        } else {
+            inst.synth.connect(limiter);
+        }
+        updateUI();
+    };
+
+    // --- TRANSPORT ---
+    let stepIdx = 0;
+    const loop = new Tone.Loop(time => {
+        instruments.forEach((inst, i) => {
+            if (inst.steps[stepIdx]) {
+                if (inst.note) inst.synth.triggerAttackRelease(inst.note, "16n", time);
+                else inst.synth.triggerAttackRelease("16n", time);
+            }
+        });
+
+        Tone.Draw.schedule(() => {
+            const nodes = document.querySelectorAll('.s-node');
+            nodes.forEach(n => n.classList.remove('playing'));
+            const rows = document.querySelectorAll('.grid');
+            rows.forEach(r => r.children[stepIdx].classList.add('playing'));
+            document.getElementById('txt-track').innerText = `STEP: ${stepIdx + 1}/16`;
+        }, time);
+
+        stepIdx = (stepIdx + 1) % 16;
+    }, "16n");
+
+    document.getElementById('pwr').onclick = async () => {
+        await Tone.start();
+        if (Tone.Transport.state !== 'started') {
+            Tone.Transport.start(); loop.start();
+            document.getElementById('pwr').innerText = "POWER OFF";
+            document.getElementById('pwr').classList.add('on');
+        } else {
+            Tone.Transport.stop(); loop.stop();
+            document.getElementById('pwr').innerText = "POWER ON";
+            document.getElementById('pwr').classList.remove('on');
+        }
+    };
+
+    // --- KNOB INTERACTION ---
+    window.handleKnob = (e, type) => {
+        let startY = e.clientY;
+        const move = (mE) => {
+            let val = Math.min(Math.max((startY - mE.clientY), -100), 100);
+            document.getElementById(`k-${type}`).style.transform = `translateX(-50%) rotate(${val}deg)`;
+            
+            if (type === 'bpm') {
+                let bpm = 128 + Math.floor(val/2);
+                Tone.Transport.bpm.value = bpm;
+                document.getElementById('txt-bpm').innerText = `${bpm} BPM`;
+            }
+            if (type === 'verb') reverb.wet.value = (val + 100) / 200;
+            if (type === 'del') delay.wet.value = (val + 100) / 200;
+        };
+        const up = () => window.removeEventListener('mousemove', move);
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', up);
+    };
+
+    // --- VISUALIZER ---
+    const canvas = document.getElementById('scope');
+    const ctx = canvas.getContext('2d');
+    function draw() {
+        requestAnimationFrame(draw);
+        const data = analyser.getValue();
+        ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.strokeStyle = '#ff4d00'; ctx.lineWidth = 3; ctx.beginPath();
+        for(let i=0; i<data.length; i++) {
+            const x = (i/data.length) * canvas.width;
+            const y = (data[i]+1) * (canvas.height/2);
+            i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+    }
+    draw();
+    updateUI();
+</script>
+</body>
+</html>
+
+        .grid { display: grid; grid-template-columns: repeat(16, 1fr); gap: 5px; }
         .s-node
