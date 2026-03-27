@@ -2,60 +2,122 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Arcade Synth Engine v2.0</title>
+    <title>Master Audio Engine</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        :root { --neon: #39ff14; --cyber: #bc13fe; --bg: #0d0d0d; }
-        body { background: var(--bg); color: white; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .arcade-panel { background: #1a1a1a; border: 4px solid #333; padding: 25px; border-radius: 20px; box-shadow: 0 0 40px rgba(188, 19, 254, 0.2); width: 90%; max-width: 900px; }
-        .display { background: #000; border: 2px solid var(--cyber); height: 100px; margin-bottom: 20px; border-radius: 10px; position: relative; overflow: hidden; }
+        :root { --main: #00ff88; --bg: #0a0a0a; --panel: #151515; }
+        body { background: var(--bg); color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 40px; }
+        .studio-box { background: var(--panel); border: 1px solid #333; padding: 30px; border-radius: 10px; width: 800px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+        .viz { height: 100px; background: #000; border: 1px solid #222; margin-bottom: 25px; border-radius: 4px; }
         canvas { width: 100%; height: 100%; }
-        .grid-ui { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-        .module { background: #222; padding: 15px; border-radius: 10px; border-bottom: 4px solid #000; }
-        label { display: block; font-size: 0.7rem; margin-bottom: 10px; color: var(--neon); text-transform: uppercase; }
-        input[type=range] { width: 100%; accent-color: var(--cyber); cursor: crosshair; }
-        .btn-main { background: var(--cyber); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; font-size: 1.5rem; border-radius: 10px; cursor: pointer; margin-top: 20px; box-shadow: 0 5px 0 #7a09a5; }
-        .btn-main:active { transform: translateY(4px); box-shadow: none; }
-        .led { width: 10px; height: 10px; border-radius: 50%; background: #333; display: inline-block; margin-right: 5px; }
-        .led.on { background: var(--neon); box-shadow: 0 0 10px var(--neon); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .control-unit { background: #222; padding: 15px; border-radius: 5px; }
+        label { display: block; font-size: 10px; color: var(--main); margin-bottom: 10px; letter-spacing: 2px; }
+        input[type=range] { width: 100%; accent-color: var(--main); cursor: pointer; }
+        button#master-switch { background: var(--main); color: black; border: none; width: 100%; padding: 20px; font-weight: bold; font-size: 18px; border-radius: 5px; cursor: pointer; margin-top: 25px; }
+        select { background: #333; color: white; border: none; width: 100%; padding: 10px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-    <div class="arcade-panel">
-        <div class="display">
-            <canvas id="osc"></canvas>
-        </div>
+    <div class="studio-box">
+        <div class="viz"><canvas id="scope"></canvas></div>
 
-        <div class="grid-ui">
-            <div class="module">
-                <label>👾 DISTORSIONE (Bitcrush)</label>
-                <input type="range" id="crush" min="1" max="16" value="16">
+        <div class="grid">
+            <div class="control-unit">
+                <label>POTENZA BASSI (Kick)</label>
+                <input type="range" id="kickVol" min="-40" max="10" value="0">
             </div>
-            <div class="module">
-                <label>🌀 LFO SPEED (Wobble)</label>
-                <input type="range" id="lfo" min="0" max="10" step="0.1" value="2">
-            </div>
-            <div class="module">
-                <label>🎹 ATMOSFERA</label>
-                <select id="mood" style="width:100%; background:#333; color:white; border:none; padding:5px;">
-                    <option value="dark">DARK TECHNO (Minore)</option>
-                    <option value="heroic">SINFONIA (Maggiore)</option>
-                    <option value="alien">ALIEN (Diminuita)</option>
+            <div class="control-unit">
+                <label>GENERE MUSICALE</label>
+                <select id="genre">
+                    <option value="techno">DEEP TECHNO (Matematica Binaria)</option>
+                    <option value="symphony">SINFONIA MODERNA (Armonia)</option>
                 </select>
             </div>
-            <div class="module">
-                <label>⏱ BPM SPEED</label>
-                <input type="range" id="bpm" min="80" max="180" value="128">
+            <div class="control-unit">
+                <label>FILTRO MASTER (Taglio Freq)</label>
+                <input type="range" id="filter" min="100" max="10000" value="5000">
+            </div>
+            <div class="control-unit">
+                <label>VELOCITÀ (BPM)</label>
+                <input type="range" id="bpm" min="100" max="160" value="128">
             </div>
         </div>
 
-        <button id="power" class="btn-main">INSERT COIN (START)</button>
-        <p style="font-size: 0.6rem; text-align: center; margin-top: 10px;">SYSTEM STATUS: <span id="status">OFFLINE</span></p>
+        <button id="master-switch">ATTIVA SISTEMA AUDIO</button>
     </div>
 
     <script>
-        // --- ARCHITETTURA SONORA ---
-        const crusher = new Tone.BitCrusher(16).toDestination();
-        const autoFilter = new Tone.AutoFilter("4n").connect(crusher).start();
-        const
+        // Setup Catena Audio Professionale
+        const limiter = new Tone.Limiter(-1).toDestination();
+        const compressor = new Tone.Compressor(-20, 3).connect(limiter);
+        const masterFilter = new Tone.Filter(5000, "lowpass").connect(compressor);
+        const analyser = new Tone.Analyser("waveform", 256).connect(masterFilter);
+
+        const kick = new Tone.MembraneSynth().connect(masterFilter);
+        const poly = new Tone.PolySynth().connect(masterFilter);
+        
+        const scales = {
+            techno: ["A1", "A2", "C2", "G2"],
+            symphony: ["E3", "G3", "B3", "D4", "F#4"]
+        };
+
+        let step = 0;
+        const mainLoop = new Tone.Loop(time => {
+            const genre = document.getElementById('genre').value;
+            const currentScale = scales[genre];
+
+            // Ritmica
+            if (step % 4 === 0) {
+                kick.triggerAttackRelease("A1", "8n", time);
+            }
+
+            // Melodia generativa
+            if (Math.random() > 0.3) {
+                const note = currentScale[Math.floor(Math.random() * currentScale.length)];
+                poly.triggerAttackRelease(note, "16n", time, 0.4);
+            }
+            step = (step + 1) % 16;
+        }, "16n");
+
+        // UI e Grafica
+        const canvas = document.getElementById("scope");
+        const ctx = canvas.getContext("2d");
+        function render() {
+            requestAnimationFrame(render);
+            const data = analyser.getValue();
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.beginPath();
+            ctx.strokeStyle = "#00ff88";
+            for(let i=0; i<data.length; i++){
+                const x = (i/data.length) * canvas.width;
+                const y = (data[i]+1) * (canvas.height/2);
+                i === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+            }
+            ctx.stroke();
+        }
+        render();
+
+        document.getElementById('master-switch').onclick = async () => {
+            await Tone.start();
+            if (Tone.Transport.state !== 'started') {
+                Tone.Transport.start();
+                mainLoop.start();
+                document.getElementById('master-switch').innerText = "STOP AUDIO";
+                document.getElementById('master-switch').style.background = "#ff3300";
+            } else {
+                Tone.Transport.stop();
+                mainLoop.stop();
+                document.getElementById('master-switch').innerText = "ATTIVA SISTEMA AUDIO";
+                document.getElementById('master-switch').style.background = "#00ff88";
+            }
+        };
+
+        document.getElementById('filter').oninput = (e) => masterFilter.frequency.value = e.target.value;
+        document.getElementById('bpm').oninput = (e) => Tone.Transport.bpm.value = e.target.value;
+        document.getElementById('kickVol').oninput = (e) => kick.volume.value = e.target.value;
+    </script>
+</body>
+</html>
