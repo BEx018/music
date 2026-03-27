@@ -2,23 +2,20 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>TE-1 // POCKET WORKSTATION</title>
+    <title>TE-PRO // MODULAR WORKSTATION</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;800&display=swap');
 
         :root {
-            --te-bg: #e0e0e0;
-            --te-panel: #f5f5f5;
+            --te-bg: #d8d8d8;
+            --te-panel: #eeeeee;
             --te-orange: #ff4d00;
-            --te-yellow: #ffcc00;
             --te-blue: #007aff;
-            --te-green: #2ecc71;
-            --te-dark: #222;
-            --te-gray: #888;
+            --te-yellow: #ffcc00;
+            --te-dark: #1a1a1a;
+            --te-gray: #a0a0a0;
         }
-
-        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
         body {
             background-color: var(--te-bg);
@@ -29,317 +26,98 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
+            user-select: none;
         }
 
-        /* TELAIO FISICO */
-        .device-frame {
-            background-color: var(--te-panel);
-            width: 900px;
-            height: 520px;
+        .device {
+            background: var(--te-panel);
+            width: 1050px;
+            height: 650px;
             border-radius: 40px;
-            box-shadow: 20px 20px 60px #bebebe, -20px -20px 60px #ffffff;
-            padding: 40px;
+            padding: 30px;
+            box-shadow: 30px 30px 60px #bebebe, -20px -20px 60px #ffffff;
             display: grid;
-            grid-template-rows: 80px 1fr 120px;
-            gap: 20px;
-            border: 1px solid #dcdcdc;
-            position: relative;
-        }
-
-        /* DISPLAY LCD MINIMAL */
-        .lcd-screen {
-            background-color: #000;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-            border: 4px solid #333;
-            overflow: hidden;
-        }
-
-        .lcd-info {
-            display: flex;
-            justify-content: space-between;
-            color: var(--te-green);
-            font-size: 10px;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-
-        canvas { width: 100%; height: 40px; }
-
-        /* GRID SEQUENCER */
-        .sequencer-grid {
-            display: grid;
-            grid-template-columns: repeat(16, 1fr);
-            gap: 10px;
-            padding: 20px 0;
-        }
-
-        .step-btn {
-            aspect-ratio: 1;
-            background: #d0d0d0;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: inset 2px 2px 5px #b0b0b0, inset -2px -2px 5px #ffffff;
-            transition: 0.1s;
-        }
-
-        .step-btn.active {
-            background: var(--te-orange);
-            box-shadow: 0 0 15px var(--te-orange);
-        }
-
-        .step-btn.playing {
-            transform: scale(1.15);
-            background: white;
-        }
-
-        /* CONTROLLI ROTATIVI (KNOBS) */
-        .knob-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 20px;
-            border-top: 2px solid #ddd;
-        }
-
-        .knob-unit { text-align: center; }
-        
-        .knob-circle {
-            width: 50px;
-            height: 50px;
-            background: #eee;
-            border-radius: 50%;
-            border: 4px solid #ccc;
-            margin-bottom: 8px;
-            position: relative;
-            cursor: ns-resize;
-            box-shadow: 3px 3px 6px #bebebe;
-        }
-
-        .knob-indicator {
-            position: absolute;
-            width: 4px;
-            height: 15px;
-            background: var(--te-gray);
-            top: 5px;
-            left: 50%;
-            transform-origin: bottom center;
-            transform: translateX(-50%) rotate(0deg);
-        }
-
-        .knob-label { font-size: 8px; font-weight: 700; color: var(--te-gray); text-transform: uppercase; }
-
-        /* TASTI FUNZIONE */
-        .side-btns {
-            position: absolute;
-            right: -80px;
-            display: flex;
-            flex-direction: column;
+            grid-template-rows: 100px 1fr 140px;
             gap: 15px;
-        }
-
-        .function-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            background: #f0f0f0;
             border: 1px solid #ccc;
-            box-shadow: 4px 4px 8px #bebebe;
-            cursor: pointer;
-            font-size: 10px;
-            font-weight: bold;
+            position: relative;
         }
 
-        .btn-play { background: var(--te-orange); color: white; border: none; }
-
-        .inst-selector {
+        /* DISPLAY LCD */
+        .display {
+            background: #000;
+            border-radius: 15px;
+            padding: 15px;
+            border: 4px solid #333;
             display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+            flex-direction: column;
+            justify-content: space-between;
         }
-
-        .inst-tab {
-            padding: 5px 15px;
+        .display-meta {
+            display: flex;
+            justify-content: space-between;
+            color: var(--te-orange);
             font-size: 10px;
-            background: #ddd;
-            border-radius: 20px;
+            font-weight: 800;
+        }
+        canvas { width: 100%; height: 45px; opacity: 0.9; }
+
+        /* TRACKS & ROUTING */
+        .workspace {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .track-card {
+            background: #e5e5e5;
+            padding: 12px;
+            border-radius: 12px;
+            display: grid;
+            grid-template-columns: 100px 140px 60px 1fr;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid #d0d0d0;
+        }
+        .track-label { font-size: 11px; font-weight: 800; color: #444; }
+
+        /* MACRO BUTTONS */
+        .macro-btns { display: flex; gap: 4px; }
+        .m-btn {
+            background: #fdfdfd;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            font-size: 9px;
+            padding: 6px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 800;
+            flex: 1;
         }
+        .m-btn:active { background: var(--te-dark); color: white; }
 
-        .inst-tab.selected {
-            background: var(--te-dark);
-            color: white;
+        /* FX ROUTING SWITCH */
+        .fx-toggle {
+            width: 40px;
+            height: 20px;
+            background: #ccc;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: 0.3s;
         }
-    </style>
-</head>
-<body>
-
-<div class="device-frame">
-    <div class="lcd-screen">
-        <div class="lcd-info">
-            <span id="display-name">KICK ENGINE</span>
-            <span id="display-bpm">124 BPM</span>
-            <span id="display-step">STEP: 01</span>
-        </div>
-        <canvas id="scope"></canvas>
-    </div>
-
-    <div>
-        <div class="inst-selector">
-            <div class="inst-tab selected" onclick="switchTrack(0)">KICK</div>
-            <div class="inst-tab" onclick="switchTrack(1)">SNARE</div>
-            <div class="inst-tab" onclick="switchTrack(2)">HIHAT</div>
-            <div class="inst-tab" onclick="switchTrack(3)">SYNTH</div>
-        </div>
-        <div class="sequencer-grid" id="step-grid"></div>
-    </div>
-
-    <div class="knob-section">
-        <div class="knob-unit">
-            <div class="knob-circle" id="k1" onmousedown="knobDrag(event, 'pitch')">
-                <div class="knob-indicator" id="ind1"></div>
-            </div>
-            <div class="knob-label">PITCH</div>
-        </div>
-        <div class="knob-unit">
-            <div class="knob-circle" id="k2" style="border-color: var(--te-orange);" onmousedown="knobDrag(event, 'decay')">
-                <div class="knob-indicator" id="ind2"></div>
-            </div>
-            <div class="knob-label">DECAY</div>
-        </div>
-        <div class="knob-unit">
-            <div class="knob-circle" id="k3" style="border-color: var(--te-blue);" onmousedown="knobDrag(event, 'filter')">
-                <div class="knob-indicator" id="ind3"></div>
-            </div>
-            <div class="knob-label">FILTER</div>
-        </div>
-        <div class="knob-unit">
-            <div class="knob-circle" id="k4" style="border-color: var(--te-yellow);" onmousedown="knobDrag(event, 'fx')">
-                <div class="knob-indicator" id="ind4"></div>
-            </div>
-            <div class="knob-label">REVERB</div>
-        </div>
-        <button class="function-btn btn-play" id="play-btn">START</button>
-    </div>
-</div>
-
-<script>
-    // AUDIO ENGINE
-    const limiter = new Tone.Limiter(-1).toDestination();
-    const reverb = new Tone.Reverb(2).connect(limiter);
-    const filter = new Tone.Filter(2000, "lowpass").connect(reverb);
-    const analyser = new Tone.Analyser("waveform", 512).connect(filter);
-
-    const instruments = [
-        { name: 'KICK', synth: new Tone.MembraneSynth().connect(filter), note: 'G1', steps: Array(16).fill(false), params: { pitch: 44, decay: 0.5 } },
-        { name: 'SNARE', synth: new Tone.NoiseSynth({volume: -10}).connect(filter), note: '', steps: Array(16).fill(false), params: { pitch: 0, decay: 0.1 } },
-        { name: 'HIHAT', synth: new Tone.MetalSynth({volume: -15}).connect(filter), note: '', steps: Array(16).fill(false), params: { pitch: 0, decay: 0.05 } },
-        { name: 'SYNTH', synth: new Tone.MonoSynth({oscillator: {type:'sawtooth'}}).connect(filter), note: 'G2', steps: Array(16).fill(false), params: { pitch: 0, decay: 0.1 } }
-    ];
-
-    let currentTrack = 0;
-    let stepIndex = 0;
-
-    // UI GENERATOR
-    const grid = document.getElementById('step-grid');
-    function drawSteps() {
-        grid.innerHTML = '';
-        instruments[currentTrack].steps.forEach((on, i) => {
-            const b = document.createElement('button');
-            b.className = 'step-btn' + (on ? ' active' : '');
-            b.onclick = () => {
-                instruments[currentTrack].steps[i] = !on;
-                drawSteps();
-            };
-            grid.appendChild(b);
-        });
-    }
-    drawSteps();
-
-    function switchTrack(i) {
-        currentTrack = i;
-        document.querySelectorAll('.inst-tab').forEach((t, idx) => t.classList.toggle('selected', idx === i));
-        document.getElementById('display-name').innerText = instruments[i].name + ' ENGINE';
-        drawSteps();
-    }
-
-    // TRANSPORT
-    const loop = new Tone.Loop(time => {
-        instruments.forEach((inst, i) => {
-            if (inst.steps[stepIndex]) {
-                if (inst.note) inst.synth.triggerAttackRelease(inst.note, "16n", time);
-                else inst.synth.triggerAttackRelease("16n", time);
-            }
-        });
-
-        Tone.Draw.schedule(() => {
-            const btns = document.querySelectorAll('.step-btn');
-            btns.forEach((b, idx) => b.classList.toggle('playing', idx === stepIndex));
-            document.getElementById('display-step').innerText = 'STEP: ' + (stepIndex + 1).toString().padStart(2, '0');
-        }, time);
-
-        stepIndex = (stepIndex + 1) % 16;
-    }, "16n");
-
-    document.getElementById('play-btn').onclick = async () => {
-        await Tone.start();
-        if (Tone.Transport.state !== 'started') {
-            Tone.Transport.start();
-            loop.start();
-            document.getElementById('play-btn').innerText = 'STOP';
-        } else {
-            Tone.Transport.stop();
-            loop.stop();
-            document.getElementById('play-btn').innerText = 'START';
+        .fx-toggle.active { background: var(--te-blue); }
+        .fx-toggle::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: 0.3s;
         }
-    };
+        .fx-toggle.active::after { left: 22px; }
 
-    // KNOB INTERACTION (Simulated)
-    function knobDrag(e, param) {
-        let startY = e.clientY;
-        const move = (moveE) => {
-            let diff = startY - moveE.clientY;
-            let val = Math.min(Math.max(diff * 2, -150), 150);
-            
-            if (param === 'filter') filter.frequency.value = 1000 + (val * 10);
-            if (param === 'fx') reverb.wet.value = (val + 150) / 300;
-            
-            // Visual feedback
-            let indId = param === 'pitch' ? 'ind1' : param === 'decay' ? 'ind2' : param === 'filter' ? 'ind3' : 'ind4';
-            document.getElementById(indId).style.transform = `translateX(-50%) rotate(${val}deg)`;
-        };
-        const up = () => {
-            window.removeEventListener('mousemove', move);
-            window.removeEventListener('mouseup', up);
-        };
-        window.addEventListener('mousemove', move);
-        window.addEventListener('mouseup', up);
-    }
-
-    // VISUALIZER
-    const canvas = document.getElementById('scope');
-    const ctx = canvas.getContext('2d');
-    function draw() {
-        requestAnimationFrame(draw);
-        const data = analyser.getValue();
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.strokeStyle = '#2ecc71';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        for(let i=0; i<data.length; i++) {
-            const x = (i/data.length) * canvas.width;
-            const y = (data[i]+1) * (canvas.height/2);
-            i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-        }
-        ctx.stroke();
-    }
-    draw();
-</script>
-</body>
-</html>
+        /* SEQUENCER GRID */
+        .grid { display: grid; grid-template-columns: repeat(16, 1fr); gap: 5px; }
+        .s-node
