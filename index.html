@@ -2,179 +2,160 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>PRO-BIT AUDIO WORKSTATION</title>
+    <title>ULTRA-STATION PRO | ARCHITECTURE v4</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        :root { --bg: #0a0a0b; --panel: #16161a; --accent: #00f2ff; --active: #ff0055; --text: #e1e1e6; }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
-        .rack { background: var(--panel); padding: 30px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); width: 100%; max-width: 1000px; border: 1px solid #333; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        :root { --neon: #00ff88; --dim: #004422; --bg: #050506; --panel: #121214; }
+        body { background: var(--bg); color: #e1e1e6; font-family: 'Inter', sans-serif; display: flex; justify-content: center; padding: 40px; margin: 0; }
+        .console { background: var(--panel); border: 1px solid #29292e; border-radius: 8px; width: 1000px; padding: 30px; box-shadow: 0 50px 100px rgba(0,0,0,0.8); }
         
-        /* Sequencer Grid */
-        .track { display: grid; grid-template-columns: 100px repeat(16, 1fr) 120px; gap: 5px; align-items: center; margin-bottom: 10px; }
-        .label { font-size: 0.7rem; font-weight: bold; color: var(--accent); text-transform: uppercase; }
-        .step { aspect-ratio: 1; background: #2d2d35; border: none; border-radius: 4px; cursor: pointer; transition: 0.1s; }
-        .step.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
-        .step.playing { border: 2px solid white; transform: scale(1.1); }
-        .step:nth-child(4n+2) { background: #3d3d45; }
+        /* Master Section */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #29292e; padding-bottom: 20px; }
+        .vu-meter { width: 200px; height: 10px; background: #1a1a1e; border-radius: 5px; position: relative; overflow: hidden; }
+        .vu-fill { height: 100%; background: linear-gradient(90deg, var(--neon), #ffcc00, #ff3300); width: 0%; transition: 0.1s; }
 
-        /* Controls */
-        .controls-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #333; }
-        .module { background: #1f1f26; padding: 15px; border-radius: 10px; }
-        .module h4 { margin: 0 0 10px 0; font-size: 0.65rem; color: #888; letter-spacing: 1px; }
-        input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
-        
-        button#play-btn { background: var(--active); color: white; border: none; padding: 15px 40px; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
-        canvas { width: 100%; height: 80px; background: #000; border-radius: 10px; margin-bottom: 20px; }
+        /* Sequencer Engine */
+        .sequencer-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 30px; }
+        .row { display: grid; grid-template-columns: 120px repeat(16, 1fr); gap: 6px; align-items: center; }
+        .row-label { font-size: 10px; font-weight: 800; color: #666; letter-spacing: 1px; }
+        .dot { aspect-ratio: 1; background: #202024; border: none; border-radius: 3px; cursor: pointer; }
+        .dot.on { background: var(--neon); box-shadow: 0 0 12px var(--neon); }
+        .dot.playing { border: 1px solid white; opacity: 0.8; }
+        .dot:nth-child(4n+2) { background: #29292e; }
+
+        /* Rack Modules */
+        .rack { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .module { background: #1a1a1e; padding: 15px; border-radius: 6px; border-top: 2px solid #29292e; }
+        .module h4 { margin: 0 0 15px 0; font-size: 11px; color: var(--neon); text-transform: uppercase; }
+        .knob-group { margin-bottom: 12px; }
+        .knob-group label { display: flex; justify-content: space-between; font-size: 9px; color: #888; margin-bottom: 5px; }
+        input[type=range] { width: 100%; accent-color: var(--neon); height: 4px; cursor: pointer; }
+
+        button#power { background: var(--neon); color: #000; border: none; padding: 15px 50px; border-radius: 4px; font-weight: 900; cursor: pointer; transition: 0.3s; }
+        button#power.stop { background: #ff3344; }
     </style>
 </head>
 <body>
 
-<div class="rack">
-    <div class="header">
-        <h2 style="margin:0">MASTER STATION <span style="font-weight:100; font-size: 1rem;">v3.0</span></h2>
+<div class="console">
+    <div class="top-bar">
         <div>
-            <span id="bpm-val">128 BPM</span>
-            <input type="range" id="bpm" min="60" max="180" value="128" style="width:100px; margin: 0 20px;">
-            <button id="play-btn">START ENGINE</button>
+            <h1 style="margin:0; font-size: 18px; letter-spacing: -1px;">ULTRA-STATION <span style="color:var(--neon)">PRO</span></h1>
+            <div class="vu-meter"><div id="vu" class="vu-fill"></div></div>
+        </div>
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <div class="knob-group"><label>TEMPO</label><input type="range" id="bpm" min="80" max="180" value="126"></div>
+            <button id="power">START ENGINE</button>
         </div>
     </div>
 
-    <canvas id="vizo"></canvas>
+    <div class="sequencer-grid" id="grid"></div>
 
-    <div id="sequencer"></div>
-
-    <div class="controls-grid">
+    <div class="rack">
         <div class="module">
-            <h4>KICK MODELLER</h4>
-            <label style="font-size: 10px;">DECAY</label>
-            <input type="range" id="k-dec" min="0.1" max="1" step="0.1" value="0.5">
-            <label style="font-size: 10px;">PITCH</label>
-            <input type="range" id="k-pit" min="30" max="80" value="45">
+            <h4>01. KICK DRUM</h4>
+            <div class="knob-group"><label>DECAY <span id="v1">0.5</span></label><input type="range" id="k-dec" min="0.1" max="1" step="0.01" value="0.5"></div>
+            <div class="knob-group"><label>PITCH <span id="v2">45Hz</span></label><input type="range" id="k-pit" min="30" max="80" value="45"></div>
         </div>
         <div class="module">
-            <h4>BASS SYNTH (303)</h4>
-            <label style="font-size: 10px;">CUTOFF</label>
-            <input type="range" id="s-cut" min="100" max="4000" value="1200">
-            <label style="font-size: 10px;">RESONANCE</label>
-            <input type="range" id="s-res" min="0" max="20" value="5">
+            <h4>02. BASS SYNC</h4>
+            <div class="knob-group"><label>CUTOFF</label><input type="range" id="b-cut" min="50" max="5000" value="800"></div>
+            <div class="knob-group"><label>RESONANCE</label><input type="range" id="b-res" min="0" max="30" value="10"></div>
         </div>
         <div class="module">
-            <h4>FX UNIT</h4>
-            <label style="font-size: 10px;">REVERB</label>
-            <input type="range" id="m-rev" min="0" max="1" step="0.1" value="0.3">
-            <label style="font-size: 10px;">DELAY</label>
-            <input type="range" id="m-del" min="0" max="1" step="0.1" value="0.2">
+            <h4>03. PERCUSSIONS</h4>
+            <div class="knob-group"><label>HH TIGHTNESS</label><input type="range" id="h-dec" min="0.01" max="0.2" step="0.01" value="0.05"></div>
+            <div class="knob-group"><label>SNARE SNAP</label><input type="range" id="s-dec" min="0.05" max="0.4" step="0.01" value="0.1"></div>
         </div>
         <div class="module">
-            <h4>MASTERING</h4>
-            <label style="font-size: 10px;">COMPRESSOR</label>
-            <input type="range" id="m-comp" min="-40" max="0" value="-20">
+            <h4>04. MASTER FX</h4>
+            <div class="knob-group"><label>SATURATION</label><input type="range" id="m-dist" min="0" max="1" step="0.01" value="0.1"></div>
+            <div class="knob-group"><label>REVERB WET</label><input type="range" id="m-rev" min="0" max="1" step="0.01" value="0.2"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- AUDIO ENGINE SETUP ---
-    const limiter = new Tone.Limiter(-1).toDestination();
-    const compressor = new Tone.Compressor(-20, 4).connect(limiter);
-    const reverb = new Tone.Reverb({ decay: 3, wet: 0.3 }).connect(compressor);
-    const delay = new Tone.FeedbackDelay("8n", 0.3).connect(compressor);
-    const analyser = new Tone.Analyser("waveform", 512).connect(limiter);
+    // ENGINE ARCHITECTURE
+    const masterDist = new Tone.Distortion(0.1).toDestination();
+    const masterLimiter = new Tone.Limiter(-1).connect(masterDist);
+    const masterReverb = new Tone.Reverb({decay: 2.5, wet: 0.2}).connect(masterLimiter);
+    const meter = new Tone.Meter().connect(masterLimiter);
 
-    const kick = new Tone.MembraneSynth().connect(compressor);
-    const snare = new Tone.NoiseSynth({ volume: -10 }).connect(compressor);
-    const hihat = new Tone.MetalSynth({ volume: -15 }).connect(compressor);
-    const bassFilter = new Tone.Filter(1200, "lowpass").connect(delay).connect(reverb);
-    const bass = new Tone.MonoSynth({ oscillator: { type: "sawtooth" } }).connect(bassFilter);
+    const kick = new Tone.MembraneSynth({envelope: {sustain:0, attack:0.005}}).connect(masterLimiter);
+    const snare = new Tone.NoiseSynth({volume:-12, envelope: {decay:0.1}}).connect(masterLimiter);
+    const hihat = new Tone.MetalSynth({volume:-18, envelope: {decay:0.05}}).connect(masterLimiter);
+    
+    const bassFilter = new Tone.Filter(800, "lowpass").connect(masterLimiter);
+    const bass = new Tone.MonoSynth({oscillator:{type:"sawtooth"}, envelope:{attack:0.01, release:0.4}}).connect(bassFilter);
 
-    const instruments = [
-        { name: 'KICK', synth: kick, note: 'G1' },
-        { name: 'SNARE', synth: snare, note: '' },
+    const insts = [
+        { name: 'KICK 909', synth: kick, note: 'G1' },
+        { name: 'SNARE 808', synth: snare, note: '' },
         { name: 'HI-HAT', synth: hihat, note: '' },
-        { name: 'BASS', synth: bass, note: 'G2' }
+        { name: 'BASS 303', synth: bass, note: 'G2' }
     ];
 
-    const grid = instruments.map(() => Array(16).fill(false));
-    const seqContainer = document.getElementById('sequencer');
+    // GRID UI GENERATION
+    const state = insts.map(() => Array(16).fill(false));
+    const gridEl = document.getElementById('grid');
 
-    // Build UI Grid
-    instruments.forEach((inst, i) => {
+    insts.forEach((inst, i) => {
         const row = document.createElement('div');
-        row.className = 'track';
-        const label = document.createElement('div');
-        label.className = 'label';
-        label.innerText = inst.name;
-        row.appendChild(label);
-
-        for (let s = 0; s < 16; s++) {
-            const btn = document.createElement('button');
-            btn.className = 'step';
-            btn.onclick = () => {
-                grid[i][s] = !grid[i][s];
-                btn.classList.toggle('active');
-            };
-            row.appendChild(btn);
+        row.className = 'row';
+        row.innerHTML = `<div class="row-label">${inst.name}</div>`;
+        for(let s=0; s<16; s++) {
+            const dot = document.createElement('button');
+            dot.className = 'dot';
+            dot.onclick = () => { state[i][s] = !state[i][s]; dot.classList.toggle('on'); };
+            row.appendChild(dot);
         }
-        seqContainer.appendChild(row);
+        gridEl.appendChild(row);
     });
 
-    // Loop Logic
-    let index = 0;
+    // CLOCK ENGINE
+    let idx = 0;
     Tone.Transport.scheduleRepeat(time => {
-        let step = index % 16;
-        instruments.forEach((inst, i) => {
-            const btns = document.querySelectorAll(`.track:nth-child(${i+1}) .step`);
-            btns.forEach(b => b.classList.remove('playing'));
-            btns[step].classList.add('playing');
-
-            if (grid[i][step]) {
-                if (inst.name === 'SNARE' || inst.name === 'HI-HAT') inst.synth.triggerAttackRelease("16n", time);
-                else inst.synth.triggerAttackRelease(inst.note, "16n", time);
+        let step = idx % 16;
+        insts.forEach((inst, i) => {
+            const dots = gridEl.querySelectorAll(`.row:nth-child(${i+1}) .dot`);
+            dots.forEach(d => d.classList.remove('playing'));
+            dots[step].classList.add('playing');
+            if(state[i][step]) {
+                if(inst.note) inst.synth.triggerAttackRelease(inst.note, "16n", time);
+                else inst.synth.triggerAttackRelease("16n", time);
             }
         });
-        index++;
+        idx++;
     }, "16n");
 
-    // Event Listeners
-    document.getElementById('play-btn').onclick = async () => {
+    // DYNAMIC UPDATES
+    document.getElementById('power').onclick = async () => {
         await Tone.start();
-        if (Tone.Transport.state !== 'started') {
+        if(Tone.Transport.state !== 'started') {
             Tone.Transport.start();
-            document.getElementById('play-btn').innerText = "STOP ENGINE";
+            document.getElementById('power').innerText = "STOP ENGINE";
+            document.getElementById('power').classList.add('stop');
         } else {
             Tone.Transport.stop();
-            document.getElementById('play-btn').innerText = "START ENGINE";
+            document.getElementById('power').innerText = "START ENGINE";
+            document.getElementById('power').classList.remove('stop');
         }
     };
 
-    document.getElementById('bpm').oninput = (e) => {
-        Tone.Transport.bpm.value = e.target.value;
-        document.getElementById('bpm-val').innerText = e.target.value + " BPM";
-    };
-
+    document.getElementById('bpm').oninput = (e) => Tone.Transport.bpm.value = e.target.value;
     document.getElementById('k-dec').oninput = (e) => kick.envelope.decay = e.target.value;
-    document.getElementById('s-cut').oninput = (e) => bassFilter.frequency.value = e.target.value;
-    document.getElementById('s-res').oninput = (e) => bassFilter.Q.value = e.target.value;
-    document.getElementById('m-rev').oninput = (e) => reverb.wet.value = e.target.value;
-    document.getElementById('m-del').oninput = (e) => delay.wet.value = e.target.value;
+    document.getElementById('k-pit').oninput = (e) => kick.setNote(e.target.value + "Hz");
+    document.getElementById('b-cut').oninput = (e) => bassFilter.frequency.value = e.target.value;
+    document.getElementById('b-res').oninput = (e) => bassFilter.Q.value = e.target.value;
+    document.getElementById('m-dist').oninput = (e) => masterDist.distortion = e.target.value;
+    document.getElementById('m-rev').oninput = (e) => masterReverb.wet.value = e.target.value;
 
-    // Visualizer
-    const canvas = document.getElementById("vizo");
-    const ctx = canvas.getContext("2d");
-    function draw() {
-        requestAnimationFrame(draw);
-        const data = analyser.getValue();
-        ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.beginPath(); ctx.strokeStyle = "#00f2ff"; ctx.lineWidth = 2;
-        for(let i=0; i<data.length; i++) {
-            const x = (i/data.length) * canvas.width;
-            const y = (data[i]+1) * (canvas.height/2);
-            i === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-        }
-        ctx.stroke();
-    }
-    draw();
+    // VU METER LOGIC
+    setInterval(() => {
+        const level = Tone.dbToGain(meter.getValue());
+        document.getElementById('vu').style.width = (level * 200) + "%";
+    }, 50);
 </script>
 </body>
 </html>
